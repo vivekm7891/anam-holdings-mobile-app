@@ -2,9 +2,9 @@
 ### Built for ENAM Holdings — AI Engineer Build Challenge 2026/2027
 **Submission by Candidate | Subject Line: `ENAM - IIT screening - 2027`**
 
-[![Tests](https://img.shields.io/badge/Unit%20%26%20Integration%20Tests-22%2F22%20Passing-emerald)](https://github.com)
-[![Architecture](https://img.shields.io/badge/Architecture-Mobile--First%20%7C%20Zero%20AI%20Slop-indigo)](https://github.com)
-[![Data Grounding](https://img.shields.io/badge/Grounding-Primary%20Sources%20Only-blue)](https://github.com)
+[![Tests](https://img.shields.io/badge/Unit%20%26%20Integration%20Tests-22%2F22%20Passing-emerald)](https://github.com/vivekm7891/finn-investment-agent)
+[![Architecture](https://img.shields.io/badge/Architecture-Mobile--First%20%7C%20Zero%20AI%20Slop-indigo)](https://github.com/vivekm7891/finn-investment-agent)
+[![Data Grounding](https://img.shields.io/badge/Grounding-Primary%20Sources%20Only-blue)](https://github.com/vivekm7891/finn-investment-agent)
 
 ---
 
