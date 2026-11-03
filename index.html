@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FINN | Financial Investment Agent (ENAM Holdings)</title>
+  <!-- Tailwind CSS CDN with full typography and dark mode support -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            dark: {
+              base: '#090d16',
+              card: '#111726',
+              elevated: '#172033',
+              border: '#1e293b',
+              muted: '#64748b'
+            },
+            accent: {
+              green: '#10b981',
+              red: '#f43f5e',
+              amber: '#f59e0b',
+              cyan: '#06b6d4',
+              purple: '#a855f7'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-dark-base text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-500/30">
+
+  <!-- TOP MOBILE HEADER / APP BAR -->
+  <header class="sticky top-0 z-50 bg-dark-base/95 backdrop-blur-md border-b border-dark-border px-4 py-2.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- Brand & Status -->
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <span class="font-mono font-black text-white text-base tracking-tighter">FN</span>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+              FINN <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">ENAM AI</span>
+            </h1>
+            <span class="inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1"></span> EOD Active
+            </span>
+          </div>
+          <p class="text-[10px] text-slate-400 truncate hidden sm:block">Institutional Intelligence Layer for Indian Public Equities</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="flex items-center space-x-2">
+        <!-- Alert Bell Trigger with Badge -->
+        <button id="header-alert-btn" onclick="switchTab('alerts')" class="relative p-2 rounded-lg bg-dark-card hover:bg-dark-elevated border border-dark-border text-slate-300 hover:text-white transition">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span id="alert-badge-count" class="absolute -top-1 -right-1 w-4 h-4 bg-accent-red text-[9px] font-bold text-white rounded-full flex items-center justify-center">0</span>
+        </button>
+
+        <!-- Threshold Config Modal Trigger -->
+        <button onclick="openConfigModal()" class="p-2 rounded-lg bg-dark-card hover:bg-dark-elevated border border-dark-border text-slate-300 hover:text-white transition" title="Tune Alert Thresholds">
+          <i data-lucide="sliders" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Portfolio Quick Stats -->
+        <div class="hidden md:flex items-center pl-2 border-l border-dark-border text-xs text-slate-400 space-x-3">
+          <div>Portfolio: <span id="header-portfolio-count" class="font-bold text-slate-200">18</span> NSE</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP / TABLET NAV PILLS -->
+    <nav class="max-w-7xl mx-auto mt-2 hidden sm:flex items-center space-x-1 border-t border-dark-border/50 pt-2">
+      <button onclick="switchTab('digest')" id="nav-btn-digest" class="nav-tab-btn active-tab flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white transition">
+        <i data-lucide="inbox" class="w-3.5 h-3.5"></i> Push Digest
+      </button>
+      <button onclick="switchTab('alerts')" id="nav-btn-alerts" class="nav-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white transition">
+        <i data-lucide="zap" class="w-3.5 h-3.5"></i> Triggered Alerts
+      </button>
+      <button onclick="switchTab('research')" id="nav-btn-research" class="nav-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white transition">
+        <i data-lucide="book-open" class="w-3.5 h-3.5"></i> Pull Research (8-Modules)
+      </button>
+      <button onclick="switchTab('copilot')" id="nav-btn-copilot" class="nav-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white transition">
+        <i data-lucide="bot" class="w-3.5 h-3.5"></i> Investor Copilot
+      </button>
+      <button onclick="switchTab('watchlist')" id="nav-btn-watchlist" class="nav-tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-300 hover:text-white transition">
+        <i data-lucide="list-filter" class="w-3.5 h-3.5"></i> Portfolio Watchlist
+      </button>
+    </nav>
+  </header>
+
+  <!-- MAIN SCROLLABLE CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 pb-24 sm:pb-8">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: PUSH WINDOWED DIGEST -->
+    <!-- ========================================== -->
+    <section id="tab-digest" class="tab-content active space-y-4">
+      <!-- Digest Controls Bar -->
+      <div class="bg-dark-card border border-dark-border rounded-xl p-3 sm:p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <!-- Time Window Selector -->
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Digest Window</span>
+          <div class="flex items-center gap-1.5 flex-wrap" id="digest-window-pills">
+            <button onclick="setDigestWindow(24)" class="digest-win-pill active-pill px-2.5 py-1 rounded-md text-xs font-medium border border-dark-border transition" data-val="24">Last 24h</button>
+            <button onclick="setDigestWindow(72)" class="digest-win-pill px-2.5 py-1 rounded-md text-xs font-medium border border-dark-border transition" data-val="72">Last 3 Days</button>
+            <button onclick="setDigestWindow(168)" class="digest-win-pill px-2.5 py-1 rounded-md text-xs font-medium border border-dark-border transition" data-val="168">Last 7 Days</button>
+            <button onclick="setDigestWindow(720)" class="digest-win-pill px-2.5 py-1 rounded-md text-xs font-medium border border-dark-border transition" data-val="720">Last 30 Days</button>
+          </div>
+        </div>
+
+        <!-- Filter by Category -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Category Filter</span>
+            <select id="digest-category-select" onchange="filterDigestCategory(this.value)" class="bg-dark-elevated border border-dark-border text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-brand-500">
+              <option value="all">All Announcement Categories</option>
+              <option value="results">Quarterly Results</option>
+              <option value="management_change">Management Change</option>
+              <option value="M&A">M&A / Acquisitions</option>
+              <option value="capex">Capex Approvals</option>
+              <option value="litigation">Litigation & Regulatory</option>
+              <option value="insider_trading">Insider Trading</option>
+              <option value="dividend">Dividends</option>
+              <option value="press_release">Press Releases / Orders</option>
+              <option value="unclassified">Routine Paperwork</option>
+            </select>
+          </div>
+
+          <div class="pt-5 md:pt-4">
+            <button onclick="fetchDigest()" class="p-2 rounded-lg bg-dark-elevated hover:bg-slate-800 text-slate-300 hover:text-white border border-dark-border text-xs transition" title="Refresh Digest">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Digest Stats & Summary Pill -->
+      <div id="digest-metadata-banner" class="flex items-center justify-between px-3 py-2 rounded-lg bg-indigo-950/20 border border-indigo-900/30 text-xs text-indigo-300">
+        <span class="flex items-center gap-2 font-mono">
+          <i data-lucide="sparkles" class="w-4 h-4 text-brand-400"></i>
+          <span id="digest-headline-stats">Loading priority filings across 18 portfolio stocks...</span>
+        </span>
+        <span class="text-[11px] text-slate-400 font-sans">Noise auto-filtered</span>
+      </div>
+
+      <!-- Priority Filings List (Surfaced High & Medium) -->
+      <div id="digest-priority-container" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- ROUTINE PAPERWORK COLLAPSED DRAWER -->
+      <div class="bg-dark-card/60 border border-dark-border/60 rounded-xl overflow-hidden mt-6">
+        <button onclick="toggleRoutineDrawer()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-dark-elevated/40 transition">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="archive" class="w-4 h-4 text-slate-400"></i>
+            <span class="text-xs font-semibold text-slate-300">Routine & Compliance Paperwork (Auto-Collapsed)</span>
+            <span id="routine-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700">0 items</span>
+          </div>
+          <div class="flex items-center space-x-1 text-slate-400 text-xs">
+            <span id="routine-drawer-text">Show Routine Items</span>
+            <i id="routine-drawer-icon" data-lucide="chevron-down" class="w-4 h-4 transition-transform"></i>
+          </div>
+        </button>
+        <div id="routine-drawer-content" class="hidden px-4 pb-4 pt-1 space-y-2 border-t border-dark-border/40">
+          <p class="text-[11px] text-slate-400 italic mb-2">These filings (ESOPs, compliance certificates, routine paperwork) do not materially impact fundamentals, but are preserved for audit completeness.</p>
+          <div id="routine-items-list" class="space-y-2">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: TRIGGERED ALERTS -->
+    <!-- ========================================== -->
+    <section id="tab-alerts" class="tab-content space-y-4">
+      <!-- Alerts Header & Threshold Quick Display -->
+      <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-accent-amber animate-ping"></span> Real-Time Triggered Alerts
+            </h2>
+            <span id="alerts-total-count" class="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-accent-amber/20 text-accent-amber border border-accent-amber/30">0</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Watches for volume breakouts (>2x avg), sharp price swings (±3%), and material exchange filings.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openConfigModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium transition shadow-md shadow-brand-500/20">
+            <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Tune Thresholds
+          </button>
+          <button onclick="fetchAlerts()" class="p-2 rounded-lg bg-dark-elevated hover:bg-slate-800 text-slate-300 border border-dark-border text-xs transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Threshold Pill Strip -->
+      <div class="flex items-center gap-2 flex-wrap text-xs text-slate-300">
+        <span class="text-slate-400 text-[11px]">Active Triggers:</span>
+        <span id="pill-price-thresh" class="px-2 py-1 rounded bg-dark-card border border-dark-border font-mono text-[11px]">Price: &ge; ±3.0%</span>
+        <span id="pill-vol-thresh" class="px-2 py-1 rounded bg-dark-card border border-dark-border font-mono text-[11px]">Volume: &ge; 2.0x 20D Avg</span>
+        <span class="px-2 py-1 rounded bg-dark-card border border-dark-border font-mono text-[11px]">Material Filings: Active</span>
+      </div>
+
+      <!-- Alerts Grid: 3 Sub-categories -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- 1. Price Moves -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between pb-1 border-b border-dark-border">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-accent-cyan"></i> Price Moves (&ge; Threshold)
+            </h3>
+            <span id="count-price-alerts" class="text-xs font-mono font-bold text-slate-400">0</span>
+          </div>
+          <div id="alerts-price-list" class="space-y-2">
+            <!-- Dynamic list -->
+          </div>
+        </div>
+
+        <!-- 2. Volume Spikes -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between pb-1 border-b border-dark-border">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-accent-purple"></i> Volume Surges (&ge; 2x Avg)
+            </h3>
+            <span id="count-vol-alerts" class="text-xs font-mono font-bold text-slate-400">0</span>
+          </div>
+          <div id="alerts-vol-list" class="space-y-2">
+            <!-- Dynamic list -->
+          </div>
+        </div>
+
+        <!-- 3. Material Filings -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between pb-1 border-b border-dark-border">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-accent-amber"></i> Material Events
+            </h3>
+            <span id="count-material-alerts" class="text-xs font-mono font-bold text-slate-400">0</span>
+          </div>
+          <div id="alerts-material-list" class="space-y-2">
+            <!-- Dynamic list -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: PULL DEEP RESEARCH (8 MODULES) -->
+    <!-- ========================================== -->
+    <section id="tab-research" class="tab-content space-y-4">
+      <!-- Research Ticker Selector & Search -->
+      <div class="bg-dark-card border border-dark-border rounded-xl p-3 sm:p-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <!-- Quick Selector Dropdown -->
+          <div class="flex-1 flex items-center gap-2">
+            <label for="research-ticker-select" class="text-xs font-semibold text-slate-400 whitespace-nowrap">Analyze Ticker:</label>
+            <select id="research-ticker-select" onchange="loadResearch(this.value)" class="flex-1 max-w-xs bg-dark-elevated border border-dark-border text-xs rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-brand-500">
+              <optgroup label="Portfolio (18 Stocks)">
+                <option value="RELIANCE" selected>RELIANCE - Reliance Industries</option>
+                <option value="TATAMOTORS">TATAMOTORS - Tata Motors</option>
+                <option value="DIXON">DIXON - Dixon Technologies</option>
+                <option value="TRENT">TRENT - Trent Ltd</option>
+                <option value="TCS">TCS - Tata Consultancy Services</option>
+                <option value="HDFCBANK">HDFCBANK - HDFC Bank</option>
+                <option value="ICICIBANK">ICICIBANK - ICICI Bank</option>
+                <option value="INFY">INFY - Infosys</option>
+                <option value="ITC">ITC - ITC Ltd</option>
+                <option value="LT">LT - Larsen & Toubro</option>
+                <option value="BHARTIARTL">BHARTIARTL - Bharti Airtel</option>
+                <option value="SUNPHARMA">SUNPHARMA - Sun Pharma</option>
+                <option value="POLYCAB">POLYCAB - Polycab India</option>
+                <option value="ASTRAL">ASTRAL - Astral Ltd</option>
+                <option value="FEDERALBNK">FEDERALBNK - The Federal Bank</option>
+                <option value="PERSISTENT">PERSISTENT - Persistent Systems</option>
+                <option value="KAYNES">KAYNES - Kaynes Technology</option>
+                <option value="CDSL">CDSL - CDSL India</option>
+              </optgroup>
+              <optgroup label="Ad-Hoc Demo Tickers">
+                <option value="ZOMATO">ZOMATO - Zomato Ltd</option>
+                <option value="SUZLON">SUZLON - Suzlon Energy</option>
+                <option value="DEEPAKNTR">DEEPAKNTR - Deepak Nitrite</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- Generalised Any-Ticker Custom Input -->
+          <div class="flex items-center gap-1.5">
+            <input type="text" id="custom-ticker-input" placeholder="Type ANY NSE symbol (e.g. WIPRO)" class="w-48 bg-dark-elevated border border-dark-border text-xs rounded-lg px-3 py-2 text-white uppercase placeholder-slate-500 font-mono focus:outline-none focus:border-brand-500">
+            <button onclick="handleCustomTickerSearch()" class="px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition">
+              Pull
+            </button>
+          </div>
+        </div>
+
+        <!-- Primary Data Grounding Banner -->
+        <div class="mt-3 pt-3 border-t border-dark-border/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+            Grounded strictly in Primary Sources: Annual Reports, Concall Transcripts, Audited Exchange Filings. No broker noise.
+          </span>
+          <a id="research-screener-link" href="https://www.screener.in" target="_blank" class="text-brand-400 hover:underline flex items-center gap-1">
+            Open on Screener <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Company Hero Banner -->
+      <div id="research-hero-banner" class="bg-gradient-to-r from-dark-card to-dark-elevated border border-dark-border rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- 8 Research Module Navigation Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="research-module-tabs">
+        <button onclick="switchResearchModule('all')" class="res-mod-pill active-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border transition" data-module="all">
+          All 8 Modules
+        </button>
+        <button onclick="switchResearchModule('narrative_vs_numbers')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border text-accent-amber border-amber-500/30 transition" data-module="narrative_vs_numbers">
+          ★ Narrative vs Numbers
+        </button>
+        <button onclick="switchResearchModule('cash_quality')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border text-emerald-400 border-emerald-500/30 transition" data-module="cash_quality">
+          Cash Quality
+        </button>
+        <button onclick="switchResearchModule('financial_snapshot')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border transition" data-module="financial_snapshot">
+          Financials
+        </button>
+        <button onclick="switchResearchModule('business_snapshot')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border transition" data-module="business_snapshot">
+          Business & Segments
+        </button>
+        <button onclick="switchResearchModule('trajectory')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border transition" data-module="trajectory">
+          Trajectory (CAGR)
+        </button>
+        <button onclick="switchResearchModule('balance_sheet')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border transition" data-module="balance_sheet">
+          Balance Sheet
+        </button>
+        <button onclick="switchResearchModule('forward_guidance')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border transition" data-module="forward_guidance">
+          Guidance
+        </button>
+        <button onclick="switchResearchModule('bull_vs_bear')" class="res-mod-pill whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium border border-dark-border transition" data-module="bull_vs_bear">
+          Bull vs Bear
+        </button>
+      </div>
+
+      <!-- Container for Research Modules Content -->
+      <div id="research-modules-container" class="space-y-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: INVESTOR COPILOT -->
+    <!-- ========================================== -->
+    <section id="tab-copilot" class="tab-content space-y-4">
+      <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+        <div class="flex items-center justify-between pb-3 border-b border-dark-border">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center justify-center">
+              <i data-lucide="bot" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-white">Institutional Research Copilot</h2>
+              <p class="text-[11px] text-slate-400">Zero AI slop. Grounded strictly in Annual Reports, Filings, and Concalls.</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active Engine</span>
+        </div>
+
+        <!-- Tap-to-Ask Prompt Chips -->
+        <div class="py-3">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Tap quick queries:</span>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button onclick="copilotAsk('Did Tata Motors deliver on concall guidance over the last 4 quarters?')" class="px-2.5 py-1 rounded-full text-xs bg-dark-elevated hover:bg-slate-800 border border-dark-border text-slate-300 transition">
+              Tata Motors: Guidance vs Delivery
+            </button>
+            <button onclick="copilotAsk('Show cash conversion ratio and FCF for Reliance')" class="px-2.5 py-1 rounded-full text-xs bg-dark-elevated hover:bg-slate-800 border border-dark-border text-slate-300 transition">
+              Reliance: Cash Quality & FCF
+            </button>
+            <button onclick="copilotAsk('Who is the incoming CFO at Infosys and what is his background?')" class="px-2.5 py-1 rounded-full text-xs bg-dark-elevated hover:bg-slate-800 border border-dark-border text-slate-300 transition">
+              Infosys: New CFO Profile
+            </button>
+            <button onclick="copilotAsk('What is the bull vs bear thesis for Trent Zudio?')" class="px-2.5 py-1 rounded-full text-xs bg-dark-elevated hover:bg-slate-800 border border-dark-border text-slate-300 transition">
+              Trent: Bull vs Bear Case
+            </button>
+            <button onclick="copilotAsk('Show all volume spikes and price triggers right now')" class="px-2.5 py-1 rounded-full text-xs bg-dark-elevated hover:bg-slate-800 border border-dark-border text-slate-300 transition">
+              Portfolio Alert Summary
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Conversation Stream -->
+        <div id="copilot-chat-stream" class="space-y-3 min-h-[320px] max-h-[500px] overflow-y-auto pr-1">
+          <!-- Welcome message -->
+          <div class="bg-dark-elevated/70 border border-dark-border rounded-xl p-3 text-xs text-slate-200">
+            <div class="flex items-center gap-1.5 font-bold text-brand-400 mb-1">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> FINN Intelligence Ready
+            </div>
+            Ask any question about your 18 portfolio companies or any NSE stock. Responses are directly grounded in audited quarterly filings, balance sheets, cash flow statements, and conference call transcripts.
+          </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form id="copilot-form" onsubmit="handleCopilotSubmit(event)" class="mt-3 pt-3 border-t border-dark-border flex items-center gap-2">
+          <input type="text" id="copilot-input" placeholder="Ask about guidance, cash conversion, management changes, debt..." class="flex-1 bg-dark-elevated border border-dark-border rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500">
+          <button type="submit" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow-md shadow-brand-500/20">
+            <span>Send</span> <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: PORTFOLIO WATCHLIST -->
+    <!-- ========================================== -->
+    <section id="tab-watchlist" class="tab-content space-y-4">
+      <div class="bg-dark-card border border-dark-border rounded-xl p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-dark-border">
+          <div>
+            <h2 class="text-base font-bold text-white">Portfolio Watchlist & Screener</h2>
+            <p class="text-xs text-slate-400">18 diverse Indian equities across Mega, Large, Mid, and Small Cap segments.</p>
+          </div>
+          <!-- Sector Filter -->
+          <div class="flex items-center gap-2">
+            <select id="watchlist-sector-filter" onchange="filterWatchlistSector(this.value)" class="bg-dark-elevated border border-dark-border text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none">
+              <option value="all">All Sectors</option>
+              <option value="Technology">Technology</option>
+              <option value="Financials">Financials & Banks</option>
+              <option value="Consumer">Consumer & Retail</option>
+              <option value="Industrials">Industrials & EPC</option>
+              <option value="Automotive">Automotive</option>
+              <option value="Energy">Energy</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- High-density Table -->
+        <div class="overflow-x-auto mt-3">
+          <table class="w-full text-left text-xs">
+            <thead class="text-[10px] uppercase font-bold text-slate-400 border-b border-dark-border bg-dark-elevated/40">
+              <tr>
+                <th class="py-2.5 px-3">Ticker / Company</th>
+                <th class="py-2.5 px-2">Sector</th>
+                <th class="py-2.5 px-2">Tier</th>
+                <th class="py-2.5 px-2 text-right">Last Price</th>
+                <th class="py-2.5 px-2 text-right">1D Chg</th>
+                <th class="py-2.5 px-2 text-right">Volume (vs 20D)</th>
+                <th class="py-2.5 px-2 text-right">P/E</th>
+                <th class="py-2.5 px-2 text-right">ROCE</th>
+                <th class="py-2.5 px-3 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="watchlist-table-body" class="divide-y divide-dark-border/40 font-mono">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MOBILE BOTTOM NAVIGATION (Thumb Friendly) -->
+  <!-- ========================================== -->
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-dark-card/95 backdrop-blur-md border-t border-dark-border py-2 px-3 flex items-center justify-around shadow-2xl">
+    <button onclick="switchTab('digest')" id="m-nav-digest" class="mobile-nav-btn active-tab flex flex-col items-center text-[10px] font-medium text-slate-400">
+      <i data-lucide="inbox" class="w-4 h-4 mb-0.5"></i> Digest
+    </button>
+    <button onclick="switchTab('alerts')" id="m-nav-alerts" class="mobile-nav-btn flex flex-col items-center text-[10px] font-medium text-slate-400 relative">
+      <i data-lucide="zap" class="w-4 h-4 mb-0.5"></i> Alerts
+      <span id="m-alert-badge" class="absolute -top-1 right-2 w-3.5 h-3.5 bg-accent-red text-[8px] font-bold text-white rounded-full flex items-center justify-center">0</span>
+    </button>
+    <button onclick="switchTab('research')" id="m-nav-research" class="mobile-nav-btn flex flex-col items-center text-[10px] font-medium text-slate-400">
+      <i data-lucide="book-open" class="w-4 h-4 mb-0.5"></i> Pull 8-M
+    </button>
+    <button onclick="switchTab('copilot')" id="m-nav-copilot" class="mobile-nav-btn flex flex-col items-center text-[10px] font-medium text-slate-400">
+      <i data-lucide="bot" class="w-4 h-4 mb-0.5"></i> Copilot
+    </button>
+    <button onclick="switchTab('watchlist')" id="m-nav-watchlist" class="mobile-nav-btn flex flex-col items-center text-[10px] font-medium text-slate-400">
+      <i data-lucide="list" class="w-4 h-4 mb-0.5"></i> Watchlist
+    </button>
+  </nav>
+
+  <!-- ========================================== -->
+  <!-- CONFIGURATION MODAL (ALERT THRESHOLD TUNER) -->
+  <!-- ========================================== -->
+  <div id="config-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-card border border-dark-border rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-dark-border">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-brand-400"></i> Configure Alert Thresholds
+        </h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Price Move Slider -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-medium text-slate-200">Price Move Sensitivity (±%):</span>
+            <span id="slider-price-val" class="font-mono font-bold text-brand-400">±3.0%</span>
+          </div>
+          <input type="range" id="slider-price" min="1.0" max="8.0" step="0.5" value="3.0" oninput="updatePriceSlider(this.value)" class="w-full accent-brand-500 cursor-pointer">
+          <p class="text-[10px] text-slate-400 mt-1">Triggers when a company moves beyond ±X% in a single trading session.</p>
+        </div>
+
+        <!-- Volume Anomaly Multiplier Slider -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-medium text-slate-200">Volume Surge Multiplier:</span>
+            <span id="slider-vol-val" class="font-mono font-bold text-brand-400">2.0x avg</span>
+          </div>
+          <input type="range" id="slider-vol" min="1.2" max="4.0" step="0.2" value="2.0" oninput="updateVolSlider(this.value)" class="w-full accent-brand-500 cursor-pointer">
+          <p class="text-[10px] text-slate-400 mt-1">Triggers when traded volume exceeds X times the 20-day historical average.</p>
+        </div>
+
+        <!-- Category Checkboxes -->
+        <div>
+          <span class="font-medium text-slate-200 block mb-2">Material Filings Watched:</span>
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked disabled class="rounded text-brand-600 bg-dark-elevated border-dark-border">
+              <span>Quarterly Results</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked disabled class="rounded text-brand-600 bg-dark-elevated border-dark-border">
+              <span>Management Change</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked disabled class="rounded text-brand-600 bg-dark-elevated border-dark-border">
+              <span>M&A & Restructuring</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked disabled class="rounded text-brand-600 bg-dark-elevated border-dark-border">
+              <span>Litigation / Orders</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-dark-border flex items-center justify-end gap-2">
+        <button onclick="closeConfigModal()" class="px-3 py-1.5 rounded-lg border border-dark-border text-slate-300 text-xs hover:bg-slate-800 transition">Cancel</button>
+        <button onclick="saveConfig()" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold transition">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA & APPLICATION JAVASCRIPT -->
+  <script src="js/data_fallback.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // Initialize Lucide icons on load
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
