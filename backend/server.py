@@ -155,12 +155,30 @@ class FinnRequestHandler(SimpleHTTPRequestHandler):
         self.send_error(404, "Endpoint Not Found")
 
 def run_server(port=8080):
-    """Starts the FINN backend server."""
-    server_address = ("", port)
-    httpd = socketserver.ThreadingTCPServer(server_address, FinnRequestHandler)
+    """Starts the FINN backend server with port-fallback and address reuse."""
+    socketserver.TCPServer.allow_reuse_address = True
+    start_port = port
+    max_port = port + 10
+    httpd = None
+    bound_port = port
+
+    while bound_port <= max_port:
+        try:
+            server_address = ("0.0.0.0", bound_port)
+            httpd = socketserver.ThreadingTCPServer(server_address, FinnRequestHandler)
+            break
+        except OSError as e:
+            print(f"Port {bound_port} unavailable ({e}), attempting port {bound_port + 1}...")
+            bound_port += 1
+
+    if httpd is None:
+        print(f"Error: Could not bind to any port in range {start_port}-{max_port}")
+        sys.exit(1)
+
     print(f"==================================================")
     print(f" FINN - Financial Investment Agent Server Started ")
-    print(f" URL: http://localhost:{port}")
+    print(f" Access URL:  http://localhost:{bound_port}")
+    print(f" Network URL: http://127.0.0.1:{bound_port}")
     print(f" Static root: {STATIC_DIR}")
     print(f"==================================================")
     try:

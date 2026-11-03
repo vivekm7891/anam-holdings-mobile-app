@@ -62,16 +62,21 @@ function switchTab(tabName) {
 async function fetchPortfolio() {
   try {
     const res = await fetch('/api/portfolio');
+    if (!res.ok) throw new Error('API status ' + res.status);
     const data = await res.json();
     STATE.companies = data.companies || [];
-
-    // Update Header Count
     const headEl = document.getElementById('header-portfolio-count');
     if (headEl) headEl.textContent = data.portfolio_count || 18;
-
     renderWatchlist(STATE.companies);
   } catch (err) {
-    console.error('Failed to load portfolio:', err);
+    console.warn('Backend unavailable, using client portfolio bundle:', err);
+    if (window.FINN_FALLBACK) {
+      const data = window.FINN_FALLBACK.getPortfolio();
+      STATE.companies = data.companies || [];
+      const headEl = document.getElementById('header-portfolio-count');
+      if (headEl) headEl.textContent = data.portfolio_count || 18;
+      renderWatchlist(STATE.companies);
+    }
   }
 }
 
@@ -152,69 +157,79 @@ function filterDigestCategory(cat) {
 
 async function fetchDigest() {
   const container = document.getElementById('digest-priority-container');
-  const routineList = document.getElementById('routine-items-list');
-  const routineBadge = document.getElementById('routine-count-badge');
-  const statsHeadline = document.getElementById('digest-headline-stats');
-
   if (container) container.innerHTML = `<div class="py-8 text-center text-slate-500 text-xs">Loading digest...</div>`;
 
   try {
     const url = `/api/digest?window=${STATE.digestWindowHours}&category=${STATE.digestCategory}`;
     const res = await fetch(url);
+    if (!res.ok) throw new Error('API status ' + res.status);
     const data = await res.json();
-
-    const pri = data.priority_items || [];
-    const rou = data.routine_items || [];
-    const meta = data.metadata || {};
-
-    if (statsHeadline) {
-      statsHeadline.textContent = `${meta.priority_count} high-priority filings surfaced across portfolio in ${meta.window_label}`;
-    }
-
-    if (routineBadge) {
-      routineBadge.textContent = `${rou.length} hidden`;
-    }
-
-    // Render Priority Items
-    if (!pri.length) {
-      container.innerHTML = `
-        <div class="bg-dark-card border border-dark-border rounded-xl p-8 text-center">
-          <i data-lucide="check-circle" class="w-8 h-8 text-emerald-400 mx-auto mb-2 opacity-80"></i>
-          <p class="text-sm font-semibold text-slate-300">No Material Filings in this Window</p>
-          <p class="text-xs text-slate-500 mt-1">Change window (e.g. 7d or 30d) or clear filters to view earlier filings.</p>
-        </div>
-      `;
-    } else {
-      container.innerHTML = pri.map(renderDigestCard).join('');
-    }
-
-    // Render Collapsed Routine Items
-    if (routineList) {
-      if (!rou.length) {
-        routineList.innerHTML = `<p class="text-xs text-slate-500">No routine paperwork in this period.</p>`;
-      } else {
-        routineList.innerHTML = rou.map(item => `
-          <div class="p-2.5 rounded-lg bg-dark-elevated/40 border border-dark-border/40 flex items-center justify-between text-xs">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-slate-300 font-mono">${item.symbol}</span>
-                <span class="text-[10px] text-slate-500 uppercase px-1 rounded bg-slate-800">${item.category}</span>
-              </div>
-              <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1">${item.title}</p>
-            </div>
-            <a href="${item.filing_url}" target="_blank" class="text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1">
-              Filing <i data-lucide="external-link" class="w-3 h-3"></i>
-            </a>
-          </div>
-        `).join('');
-      }
-    }
-
-    if (window.lucide) lucide.createIcons();
+    renderDigestData(data);
   } catch (err) {
-    console.error('Failed to load digest:', err);
-    if (container) container.innerHTML = `<div class="p-4 text-xs text-red-400">Error loading digest data.</div>`;
+    console.warn('Backend unavailable, using client digest data:', err);
+    if (window.FINN_FALLBACK) {
+      const data = window.FINN_FALLBACK.getDigest(STATE.digestWindowHours, STATE.digestCategory);
+      renderDigestData(data);
+    } else {
+      if (container) container.innerHTML = `<div class="p-4 text-xs text-red-400">Error loading digest data.</div>`;
+    }
   }
+}
+
+function renderDigestData(data) {
+  const container = document.getElementById('digest-priority-container');
+  const routineList = document.getElementById('routine-items-list');
+  const routineBadge = document.getElementById('routine-count-badge');
+  const statsHeadline = document.getElementById('digest-headline-stats');
+
+  const pri = data.priority_items || [];
+  const rou = data.routine_items || [];
+  const meta = data.metadata || {};
+
+  if (statsHeadline) {
+    statsHeadline.textContent = `${meta.priority_count} high-priority filings surfaced across portfolio in ${meta.window_label}`;
+  }
+
+  if (routineBadge) {
+    routineBadge.textContent = `${rou.length} hidden`;
+  }
+
+  // Render Priority Items
+  if (!pri.length) {
+    container.innerHTML = `
+      <div class="bg-dark-card border border-dark-border rounded-xl p-8 text-center">
+        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-400 mx-auto mb-2 opacity-80"></i>
+        <p class="text-sm font-semibold text-slate-300">No Material Filings in this Window</p>
+        <p class="text-xs text-slate-500 mt-1">Change window (e.g. 7d or 30d) or clear filters to view earlier filings.</p>
+      </div>
+    `;
+  } else {
+    container.innerHTML = pri.map(renderDigestCard).join('');
+  }
+
+  // Render Collapsed Routine Items
+  if (routineList) {
+    if (!rou.length) {
+      routineList.innerHTML = `<p class="text-xs text-slate-500">No routine paperwork in this period.</p>`;
+    } else {
+      routineList.innerHTML = rou.map(item => `
+        <div class="p-2.5 rounded-lg bg-dark-elevated/40 border border-dark-border/40 flex items-center justify-between text-xs">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-300 font-mono">${item.symbol}</span>
+              <span class="text-[10px] text-slate-500 uppercase px-1 rounded bg-slate-800">${item.category}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1">${item.title}</p>
+          </div>
+          <a href="${item.filing_url}" target="_blank" class="text-slate-500 hover:text-slate-300 text-[11px] flex items-center gap-1">
+            Filing <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>
+        </div>
+      `).join('');
+    }
+  }
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderDigestCard(item) {
@@ -399,29 +414,37 @@ async function fetchAlerts() {
   try {
     const url = `/api/alerts?price_thresh=${STATE.alertConfig.priceMoveThresholdPct}&vol_thresh=${STATE.alertConfig.volumeMultiplierThreshold}`;
     const res = await fetch(url);
+    if (!res.ok) throw new Error('API status ' + res.status);
     const data = await res.json();
-    STATE.alerts = data;
-
-    const total = data.summary.total_triggered || 0;
-    
-    // Update Badge Counts
-    const headerBadge = document.getElementById('alert-badge-count');
-    const mobileBadge = document.getElementById('m-alert-badge');
-    const totalEl = document.getElementById('alerts-total-count');
-
-    if (headerBadge) headerBadge.textContent = total;
-    if (mobileBadge) mobileBadge.textContent = total;
-    if (totalEl) totalEl.textContent = `${total} Triggered`;
-
-    // Render Sub-columns
-    renderPriceAlerts(data.price_anomalies || []);
-    renderVolumeAlerts(data.volume_spikes || []);
-    renderMaterialAlerts(data.material_filings || []);
-
-    if (window.lucide) lucide.createIcons();
+    renderAlertsData(data);
   } catch (err) {
-    console.error('Failed to load alerts:', err);
+    console.warn('Backend unavailable, using client alerts data:', err);
+    if (window.FINN_FALLBACK) {
+      const data = window.FINN_FALLBACK.getAlerts(STATE.alertConfig.priceMoveThresholdPct, STATE.alertConfig.volumeMultiplierThreshold);
+      renderAlertsData(data);
+    }
   }
+}
+
+function renderAlertsData(data) {
+  STATE.alerts = data;
+  const total = (data.summary && data.summary.total_triggered) || 0;
+  
+  // Update Badge Counts
+  const headerBadge = document.getElementById('alert-badge-count');
+  const mobileBadge = document.getElementById('m-alert-badge');
+  const totalEl = document.getElementById('alerts-total-count');
+
+  if (headerBadge) headerBadge.textContent = total;
+  if (mobileBadge) mobileBadge.textContent = total;
+  if (totalEl) totalEl.textContent = `${total} Triggered`;
+
+  // Render Sub-columns
+  renderPriceAlerts(data.price_anomalies || []);
+  renderVolumeAlerts(data.volume_spikes || []);
+  renderMaterialAlerts(data.material_filings || []);
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderPriceAlerts(items) {
@@ -552,23 +575,31 @@ async function loadResearch(tickerSymbol) {
 
   try {
     const res = await fetch(`/api/research?ticker=${tickerSymbol}`);
+    if (!res.ok) throw new Error('API status ' + res.status);
     const data = await res.json();
-    STATE.currentResearchData = data;
-
-    renderResearchHero(data);
-    renderResearchModules(data, STATE.activeResearchModule);
-
-    // Update Screener Link
-    const sLink = document.getElementById('research-screener-link');
-    if (sLink && data.screener_url) {
-      sLink.href = data.screener_url;
-    }
-
-    if (window.lucide) lucide.createIcons();
+    applyResearchData(data);
   } catch (err) {
-    console.error('Failed to load research:', err);
-    if (container) container.innerHTML = `<div class="p-4 text-xs text-red-400">Error loading research data.</div>`;
+    console.warn('Backend unavailable, using client research data for ' + tickerSymbol, err);
+    if (window.FINN_FALLBACK) {
+      const data = window.FINN_FALLBACK.getResearch(tickerSymbol);
+      applyResearchData(data);
+    } else {
+      if (container) container.innerHTML = `<div class="p-4 text-xs text-red-400">Error loading research data.</div>`;
+    }
   }
+}
+
+function applyResearchData(data) {
+  STATE.currentResearchData = data;
+  renderResearchHero(data);
+  renderResearchModules(data, STATE.activeResearchModule);
+
+  const sLink = document.getElementById('research-screener-link');
+  if (sLink && data.screener_url) {
+    sLink.href = data.screener_url;
+  }
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderResearchHero(data) {
@@ -999,6 +1030,7 @@ async function handleCopilotSubmit(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, active_ticker: STATE.activeResearchTicker })
     });
+    if (!res.ok) throw new Error('API status ' + res.status);
     const ans = await res.json();
     thinkingBubble.remove();
 
@@ -1007,11 +1039,18 @@ async function handleCopilotSubmit(e) {
     if (window.lucide) lucide.createIcons();
   } catch (err) {
     thinkingBubble.remove();
-    console.error('Copilot error:', err);
-    const errBubble = document.createElement('div');
-    errBubble.className = 'text-xs text-rose-400 p-2';
-    errBubble.textContent = 'Error processing request. Please retry.';
-    stream.appendChild(errBubble);
+    console.warn('Backend copilot unavailable, using client query router:', err);
+    if (window.FINN_FALLBACK) {
+      const ans = window.FINN_FALLBACK.getCopilot(query, STATE.activeResearchTicker);
+      renderCopilotResponse(stream, ans);
+      stream.scrollTop = stream.scrollHeight;
+      if (window.lucide) lucide.createIcons();
+    } else {
+      const errBubble = document.createElement('div');
+      errBubble.className = 'text-xs text-rose-400 p-2';
+      errBubble.textContent = 'Error processing request. Please retry.';
+      stream.appendChild(errBubble);
+    }
   }
 }
 
