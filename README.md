@@ -2,9 +2,9 @@
 ### Built for ENAM Holdings — AI Engineer Build Challenge 2026/2027
 **Submission by Candidate | Subject Line: `ENAM - IIT screening - 2027`**
 
-[![Tests](https://img.shields.io/badge/Unit%20%26%20Integration%20Tests-22%2F22%20Passing-emerald)](https://github.com/vivekm7891/finn-investment-agent)
-[![Architecture](https://img.shields.io/badge/Architecture-Mobile--First%20%7C%20Zero%20AI%20Slop-indigo)](https://github.com/vivekm7891/finn-investment-agent)
-[![Data Grounding](https://img.shields.io/badge/Grounding-Primary%20Sources%20Only-blue)](https://github.com/vivekm7891/finn-investment-agent)
+[![Tests](https://img.shields.io/badge/Unit%20%26%20Integration%20Tests-22%2F22%20Passing-emerald)](https://github.com/vivekm7891/anam-holdings-mobile-app)
+[![Architecture](https://img.shields.io/badge/Architecture-Mobile--First%20%7C%20Zero%20AI%20Slop-indigo)](https://github.com/vivekm7891/anam-holdings-mobile-app)
+[![Data Grounding](https://img.shields.io/badge/Grounding-Primary%20Sources%20Only-blue)](https://github.com/vivekm7891/anam-holdings-mobile-app)
 
 ---
 
@@ -135,7 +135,7 @@ Grounded **strictly** in primary sources (Annual Reports, Quarterly Filings, Ear
 ### 1. Run the Application
 ```bash
 # Navigate to the project directory
-cd finn-investment-agent
+cd anam-holdings-mobile-app
 
 # Start the high-performance local server
 python backend/server.py 8080
@@ -156,7 +156,7 @@ python -m unittest discover tests
 
 ## Project Structure
 ```
-finn-investment-agent/
+anam-holdings-mobile-app/
 ├── backend/
 │   ├── server.py              # Lightweight REST API server & static file host
 │   ├── data/
